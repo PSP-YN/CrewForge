@@ -1,145 +1,103 @@
 # CrewForge
 
-**Race-safe team formation for high-concurrency hackathons.**
+**Find your people. Build something real.**
 
-CrewForge helps participants discover teams, create crews, and join without duplicate membership or over-capacity teams. Its defining requirement is a data-integrity guarantee: concurrent requests must not allow a participant to join multiple teams in one hackathon or claim more seats than a team has.
+CrewForge helps people form balanced teams by making skills, interests, team needs, and available seats visible. Participants can discover teams, compare their skills with what a team needs, and join a suitable crew. Team leaders can create teams, manage capacity, review requests, and invite contributors.
 
-[![CI](https://github.com/PSP-YN/Race-proof-team-formation/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PSP-YN/Race-proof-team-formation/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/PSP-YN/Race-proof-team-formation/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/PSP-YN/Race-proof-team-formation/actions/workflows/codeql.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+> **Try the product:** [Open the CrewForge demo](https://crewforge-demo-pspyn.vercel.app/)
+>
+> The public link is a browser-only interactive preview. Its sample teams and changes are stored in your browser; it does not connect to the MongoDB backend. The full-stack application is available in this repository and can be run locally using the instructions below.
 
-## Product capabilities
+## What it does
 
-- Participant registration, email verification, sign-in, sign-out, and password recovery.
-- Team creation, capacity management, leader-controlled settings, and team discovery.
-- Moderated join requests: participants request a seat; only the current leader can accept or decline.
-- Leader-only member removal, transactional leave, leadership succession, and duplicate-membership protection.
-- Invitation creation, listing, revocation, expiry, and single-use acceptance.
-- Skill-complementarity recommendations with an explainable score.
-- MongoDB change-stream Server-Sent Events (SSE), bounded stream lifetime, and client refresh fallback.
-- Rate limiting, origin validation, audit events, privacy-preserving security telemetry, and an allowlisted security dashboard.
-- Health endpoint, disposable large-dataset seeding, smoke tests, concurrency tests, and k6 load testing.
+- **Discover teams:** browse and filter teams by skills and requirements.
+- **Find a skills fit:** see which teams need skills you can contribute.
+- **Create a team:** define its goal, skills, needs, and member limit.
+- **Manage membership:** handle join requests, invitations, team capacity, and member lifecycle.
+- **Protect team integrity:** enforce membership and capacity rules in the database, not only in the browser.
 
-## Engineering highlights
+## How it works
 
-CrewForge treats membership as a concurrency and consistency problem, not a client-side form-validation problem.
+```text
+Browser (Next.js / React)
+          |
+          v
+Next.js API routes  ---- Authentication, validation, rate limits
+          |
+          v
+MongoDB replica set ---- Transactions, unique indexes, audit events
+          |
+          +------------- Change streams / Server-Sent Events
+```
 
-1. A unique database index enforces one membership per participant per hackathon; a partial unique index allows only one pending join request per participant per hackathon.
-2. Only the current leader can accept or decline. Acceptance, seat reservation, membership insertion, request status and audit event commit in one MongoDB transaction.
-3. Request-bound idempotency keys make retries safe and reject conflicting reuse.
-4. Leader-only member removal, leadership succession, last-member team closure and invite invalidation preserve lifecycle invariants.
-5. Invitation tokens are random, hashed at rest, expiring, revocable, and consumed transactionally.
+The central engineering problem is concurrent team formation. MongoDB unique indexes prevent duplicate membership, while transactions make approval, seat allocation, membership changes, and audit records atomic. This protects the final seat when multiple participants try to join at the same time.
 
-The replica-set integration test creates 50 pending requests and executes 50 leader approvals concurrently for one remaining seat. Exactly one approval commits; 49 are rejected and the stored member count remains correct.
-
-See [architecture and correctness notes](docs/architecture.md) for the transaction model, [engineering decisions](docs/engineering-decisions.md) for the technology trade-offs, [threat model](docs/threat-model.md) for the security boundaries, and [test strategy](docs/test-strategy.md) for the verification matrix.
+Read [Architecture](docs/architecture.md) for the data model and transaction flow, and [Engineering decisions](docs/engineering-decisions.md) for implementation trade-offs.
 
 ## Technology
 
-| Layer | Technology |
+| Area | Stack |
 |---|---|
-| Application | Next.js 16 App Router, React 19, TypeScript |
-| Validation | Zod 4 |
-| Persistence | MongoDB 7 replica set / MongoDB Atlas |
-| Authentication | bcrypt password hashes, signed JWT sessions, HttpOnly cookies |
-| Email | Resend |
-| Realtime | MongoDB change streams and browser EventSource |
-| Infrastructure | Vercel deployment guidance, Cloudflare Terraform WAF template |
-| Quality | Vitest, TypeScript, npm audit, GitHub Actions, CodeQL, k6 |
+| Frontend and application | Next.js 16, React 19, TypeScript |
+| API and validation | Next.js App Router, Zod 4 |
+| Database | MongoDB 7 replica set |
+| Authentication | bcrypt password hashing, signed JWT sessions, HttpOnly cookies |
+| Realtime updates | MongoDB Change Streams, Server-Sent Events |
+| Local infrastructure | Docker Compose |
+| Quality | Vitest, TypeScript, GitHub Actions, CodeQL, k6 |
 
-## Quick start
+## Run locally
 
 ### Requirements
 
-- Node.js 20 or newer
-- npm
-- MongoDB replica set (local Docker or MongoDB Atlas)
-- Resend API key and verified sender for email verification and recovery flows
+- Node.js 22 or newer and npm
+- Docker Engine with the Compose plugin
 
-### Configure
+### Start the full-stack application
 
 ```bash
-cp .env.example .env.local
+git clone https://github.com/PSP-YN/Race-proof-team-formation.git
+cd Race-proof-team-formation
+cp .env.example .env
 ```
 
-Set these values in `.env.local`:
+Set `JWT_SECRET` in `.env` to a unique random value of at least 32 characters. For the seeded local demo, also set separate values for `SEED_DEMO_PASSWORD` and `JUDGE_DEMO_PASSWORD`. Keep `.env` private; never commit credentials.
 
-- `MONGODB_URI`: replica-set connection string
-- `JWT_SECRET`: at least 32 cryptographically random characters
-- `NEXT_PUBLIC_APP_URL`: exact app origin, for example `http://localhost:3000`
-- `RESEND_API_KEY` and `EMAIL_FROM`: verified Resend sender configuration
-- `ADMIN_EMAILS`: comma-separated operator allowlist
+```bash
+docker compose up --build -d
+```
 
-Never prefix secrets with `NEXT_PUBLIC_`. Never commit `.env.local`.
+Open **http://localhost:3002**. The Compose setup starts the application and a MongoDB replica set. Email verification and password recovery email delivery are optional and remain disabled unless a verified email sender is configured.
 
-### Run
+See the [Docker Compose guide](docs/docker-compose.md) for seeding, health checks, smoke tests, and cleanup. See [Production readiness](docs/production-readiness.md) before deploying a public instance.
+
+## Verify the code
 
 ```bash
 npm ci
-npm run dev
-```
-
-Open http://localhost:3000.
-
-Email verification is required before an account becomes active. Configure Resend before demonstrating registration or account recovery. Use a disposable database for all tests and demo seeding.
-
-## Validation
-
-```bash
 npm run typecheck
 npm test
 npm run build
-npm audit --audit-level=moderate
 ```
 
-The MongoDB integration test requires a replica set through `MONGODB_TEST_URI`. CI provisions a disposable replica set, validates a dataset of 10,000 users / 2,000 teams / 8,000 memberships, runs the 50-contender final-seat race test, builds the production application, executes smoke checks, and runs a 100-VU / 30-second k6 board test.
+The default local test command runs unit and API contract tests. MongoDB-dependent concurrency tests require a replica set; see [Test strategy](docs/test-strategy.md) for the integration-test setup and coverage. Do not interpret skipped database tests as passing integration tests.
 
-Latest main-branch CI benchmark: [run 41673400104](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41673400104). Latest validation of the deployed demo source commit: [CI run 41843530011](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41843530011) and [CodeQL run 41843529892](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41843529892), both passed. It recorded 3,000 requests, 97.84 requests/second, 13.69 ms average response, 11.01 ms p95, 0% HTTP failures, and 6,000/6,000 board checks passed. These are GitHub-runner measurements against a disposable local MongoDB replica set, not production-region measurements. See [performance report](docs/performance.md).
+## Project structure
 
-## Deployment status and production gates
+```text
+src/          Next.js application, API routes, authentication and data access
+demo/         Standalone browser-only product preview
+tests/        Unit, API contract, and MongoDB integration tests
+docs/         Architecture, security, operations, and test documentation
+scripts/      Database setup, seeding, and verification utilities
+```
 
-The repository contains deployment configuration and operational guidance, but it must not be described as production-deployed until the following are complete:
+## Security and contribution
 
-- Vercel project and production domain are configured.
-- MongoDB Atlas replica-set URI, network access, least-privilege database user, and backup policy are configured.
-- `JWT_SECRET`, `NEXT_PUBLIC_APP_URL`, `RESEND_API_KEY`, `EMAIL_FROM`, and `ADMIN_EMAILS` are set in the hosting provider's encrypted environment settings.
-- Resend sender domain has SPF, DKIM, and DMARC configured and email delivery tested.
-- Cloudflare zone is configured and proxied before applying the Terraform WAF template.
-- Staging black-box security and user-flow checks pass.
-- Deployed smoke and load tests are run and their environment/metrics are recorded.
-- Backup restore and rollback are rehearsed.
+- Review the [Threat model](docs/threat-model.md) and [Security policy](SECURITY.md).
+- Read [Contributing](CONTRIBUTING.md) before opening a pull request.
+- CrewForge is released under the [MIT License](LICENSE).
 
-Follow [production readiness](docs/production-readiness.md) for the runbook and required environment variables. Do not paste credentials into issues, pull requests, or chat.
+## Current scope
 
-## Demo
-
-### No-backend judging demo
-
-**Public demo:** [crewforge-demo-pspyn.vercel.app](https://crewforge-demo-pspyn.vercel.app/) · [Alternate Vercel alias](https://crewforge-demo-sandy.vercel.app/)
-
-The standalone static demo source is [`demo/index.html`](demo/index.html). It does not call APIs, use a database, require login, load remote assets, or need secrets. Team creation, join/leave, skill matching and reset are simulated in browser JavaScript and saved only in local browser storage. It is intentionally not the live full-stack service; the race-safety guarantee is separately verified by MongoDB replica-set integration tests.
-
-The full-stack application demo remains available via the five-minute walkthrough in [docs/demo-runbook.md](docs/demo-runbook.md). The demo guide includes setup, test-account preparation, technical explanation, recovery steps, and claims to avoid. The reviewer-first [submission pack](SUBMISSION.md) links the one-page design brief, measured performance evidence, test matrix and [walkthrough video script](docs/walkthrough-video-script.md). The challenge-specific explanation and interview preparation are in [docs/challenge-submission.md](docs/challenge-submission.md).
-
-## Project documentation
-
-- [Architecture and correctness](docs/architecture.md)
-- [Engineering decisions and industry patterns](docs/engineering-decisions.md)
-- [Threat model](docs/threat-model.md)
-- [Test strategy and black-box matrix](docs/test-strategy.md)
-- [Performance report](docs/performance.md)
-- [Production readiness and operations](docs/production-readiness.md)
-- [Demo runbook](docs/demo-runbook.md)
-- [Challenge submission and interview guide](docs/challenge-submission.md)
-- [Contributing](CONTRIBUTING.md)
-- [Security policy](SECURITY.md)
-- [Code of conduct](CODE_OF_CONDUCT.md)
-- [MIT License](LICENSE)
-
-## Open source
-
-CrewForge is released under the [MIT License](LICENSE). Contributions are governed by the [contribution guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md). Please report vulnerabilities privately using the process in [SECURITY.md](SECURITY.md).
-
-## Scope and honest limitations
-
-The current automated evidence covers the CI environment and stated synthetic workloads. It does not establish production availability, production-region latency, a formal security certification, an active Cloudflare WAF, or a production SLA. Hosting, email delivery, database operations, and deployment-specific behavior must be validated in the actual target environment before public launch.
+The public preview is intended for product exploration, not as a live multi-user service. Full-stack local operation requires MongoDB replica-set configuration. A production launch additionally requires a hosted MongoDB replica set, secure environment variables, verified email configuration if email flows are enabled, deployment-specific smoke tests, backups, and operational monitoring. The repository's automated tests do not by themselves establish production availability or a security certification.
