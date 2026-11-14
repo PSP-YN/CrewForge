@@ -65,7 +65,7 @@ The repository includes a MIT license, contribution rules, Code of Conduct, vuln
 
 For the submission, link directly to:
 - Repository: https://github.com/PSP-YN/CrewForge
-- CI evidence: https://github.com/PSP-YN/CrewForge/actions/runs/41517226227
+- CI evidence: https://github.com/PSP-YN/CrewForge/actions/runs/43629629746
 - Performance report: [docs/performance.md](performance.md)
 - Architecture: [docs/architecture.md](architecture.md)
 - Test matrix: [docs/test-strategy.md](test-strategy.md)

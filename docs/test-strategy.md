@@ -56,7 +56,7 @@ Run these against a disposable staging deployment using separate test accounts. 
 
 The GitHub Actions workflow provisions a disposable MongoDB replica set, seeds and verifies 10,000 users, 2,000 teams, 6,000 memberships, 4,000 unassigned participants and 4,000 open seats, runs typecheck and automated tests, audits locked dependencies, builds the application, starts the production server, runs smoke checks, and executes the 100-VU/30-second k6 board test.
 
-Latest successful main-branch CI run: https://github.com/PSP-YN/CrewForge/actions/runs/43627799288. Matching CodeQL run: https://github.com/PSP-YN/CrewForge/actions/runs/43627799190. Both passed on the merged submission commit `40f5d4d`, including the corrected seed, 71-test suite, transaction-kill rollback and 100-VU load test.
+Latest successful main-branch CI run: https://github.com/PSP-YN/CrewForge/actions/runs/43629629746. Matching CodeQL run: https://github.com/PSP-YN/CrewForge/actions/runs/43629629674. Both passed on the merged submission commit `9687d72`, including the corrected seed, 71-test suite, transaction-kill rollback and 100-VU load test.
 
 ## Local verification on submission-readiness branch
 

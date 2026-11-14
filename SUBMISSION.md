@@ -63,13 +63,13 @@ This is called a **race condition**: the result depends on which request reaches
 
 ## Evidence reviewers can inspect
 
-- **CI:** https://github.com/PSP-YN/CrewForge/actions/runs/43627799288 — passed
-- **CodeQL:** https://github.com/PSP-YN/CrewForge/actions/runs/43627799190 — passed
+- **CI:** https://github.com/PSP-YN/CrewForge/actions/runs/43629629746 — passed
+- **CodeQL:** https://github.com/PSP-YN/CrewForge/actions/runs/43629629674 — passed
 - **Automated tests:** 71/71 passed, including 11 MongoDB replica-set integration tests
 - **Concurrency test:** 50 approval requests compete for one final seat; exactly one succeeds
 - **Fault injection:** a worker is stopped before transaction commit; the database changes roll back
 - **Synthetic data:** 10,000 users, 2,000 teams, 6,000 memberships, 4,000 unassigned participants and 4,000 open seats
-- **Load test:** 100 virtual users for 30 seconds; 3,000 requests, 98.02 requests/second, 19.87 ms p95, 0% HTTP failures and 6,000/6,000 board checks passed
+- **Load test:** 100 virtual users for 30 seconds; 3,000 requests, 98.23 requests/second, 8.56 ms p95, 0% HTTP failures and 6,000/6,000 board checks passed
 
 These are automated tests on a GitHub-hosted runner with a disposable MongoDB replica set. They are not a claim of production-region performance or guaranteed production capacity.
 

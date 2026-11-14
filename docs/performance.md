@@ -34,9 +34,9 @@ The same run verified 10,000 seeded users, 2,000 teams and 10,000 memberships; a
 
 ## Latest CI benchmark (main branch)
 
-**Run:** [GitHub Actions CI run 43627799288](https://github.com/PSP-YN/CrewForge/actions/runs/43627799288) — passed
-**Tested commit:** `40f5d4df0a5c56c642ae412fa143d6d68a910244` (the reviewed submission commit, merged into `main`)
-**CodeQL:** [Run 43627799190](https://github.com/PSP-YN/CrewForge/actions/runs/43627799190) — passed
+**Run:** [GitHub Actions CI run 43629629746](https://github.com/PSP-YN/CrewForge/actions/runs/43629629746) — passed
+**Tested commit:** `9687d72b40fdc05fb862b1e0a066c473ff18c0cb` (current main)
+**CodeQL:** [Run 43629629674](https://github.com/PSP-YN/CrewForge/actions/runs/43629629674) — passed
 **Environment:** GitHub-hosted runner, Next.js production server, MongoDB 7 disposable Docker replica set
 **Dataset:** 10,000 synthetic users, 2,000 teams, 6,000 memberships, 4,000 unassigned participants, 4,000 open seats and 2 judge-only accounts
 **Load:** 100 virtual users for 30 seconds
@@ -44,12 +44,12 @@ The same run verified 10,000 seeded users, 2,000 teams and 10,000 memberships; a
 | Metric | Result |
 |---|---:|
 | Requests | 3,000 |
-| Throughput | 98.02 requests/second |
-| Average response | 13.81 ms |
-| Median response | 4.83 ms |
-| p90 response | 10.00 ms |
-| p95 response | 19.87 ms |
-| Maximum response | 405.04 ms |
+| Throughput | 98.23 requests/second |
+| Average response | 11.31 ms |
+| Median response | 4.19 ms |
+| p90 response | 6.47 ms |
+| p95 response | 8.56 ms |
+| Maximum response | 384.58 ms |
 | HTTP failures | 0.00% |
 | Board checks | 6,000 / 6,000 passed |
 

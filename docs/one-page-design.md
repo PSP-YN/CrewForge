@@ -38,16 +38,16 @@ The test invokes the same transaction helpers used by the API routes.
 
 ## Scale and performance evidence
 
-The latest submission-branch CI seed verifies **10,000 synthetic participants, 2,000 teams, 6,000 membership records, 4,000 unassigned participants and 4,000 open seats** (three members per team, two open seats per team and 4,000 unassigned participants). It also assigns profile skills and IANA time zones so the matching endpoint can be exercised against realistic diversity. These are test fixtures, not real registrations.
+The latest main-branch CI seed verifies **10,000 synthetic participants, 2,000 teams, 6,000 membership records, 4,000 unassigned participants and 4,000 open seats** (three members per team, two open seats per team and 4,000 unassigned participants). It also assigns profile skills and IANA time zones so the matching endpoint can be exercised against realistic diversity. These are test fixtures, not real registrations.
 
-The latest 100-virtual-user / 30-second k6 run (CI run 42057405278) against a GitHub-hosted runner and disposable MongoDB 7 replica set recorded:
+The latest 100-virtual-user / 30-second k6 run (CI run 43629629746) against a GitHub-hosted runner and disposable MongoDB 7 replica set recorded:
 
 | Metric | Result |
 |---|---:|
 | Requests | 3,000 |
-| Throughput | 98.43 requests/second |
-| Average response | 10.20 ms |
-| p95 response | 10.23 ms |
+| Throughput | 98.23 requests/second |
+| Average response | 11.31 ms |
+| p95 response | 8.56 ms |
 | HTTP failures | 0.00% |
 | Board checks | 6,000 / 6,000 passed |
 
@@ -64,8 +64,8 @@ This is a reproducible CI regression benchmark, not a production-region capacity
 
 ## Evidence links
 
-- [CI run — 71/71 tests and corrected 10k/2k/6k seed](https://github.com/PSP-YN/CrewForge/actions/runs/42057405278)
-- [CodeQL run](https://github.com/PSP-YN/CrewForge/actions/runs/42057405246)
+- [CI run — 71/71 tests and corrected 10k/2k/6k seed](https://github.com/PSP-YN/CrewForge/actions/runs/43629629746)
+- [CodeQL run](https://github.com/PSP-YN/CrewForge/actions/runs/43629629674)
 - [Performance report](performance.md)
 - [Race integration test](../tests/integration/race.test.ts)
 - [Membership transaction implementation](../src/lib/team-requests.ts)
