@@ -3,7 +3,7 @@
 **Pitch:** A reliable hackathon team-formation platform where skill discovery is fast and membership capacity is enforced by the database—not by a browser button.
 
 **Interactive product preview:** https://crewforge-demo-pspyn.vercel.app/
-**Repository:** https://github.com/PSP-YN/Race-proof-team-formation
+**Repository:** https://github.com/PSP-YN/CrewForge
 **Challenge:** Hack4Hack Crew Hiring Challenge 2026 · PS1
 
 ## The problem
@@ -64,8 +64,8 @@ This is a reproducible CI regression benchmark, not a production-region capacity
 
 ## Evidence links
 
-- [CI run — 71/71 tests and corrected 10k/2k/6k seed](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/42057405278)
-- [CodeQL run](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/42057405246)
+- [CI run — 71/71 tests and corrected 10k/2k/6k seed](https://github.com/PSP-YN/CrewForge/actions/runs/42057405278)
+- [CodeQL run](https://github.com/PSP-YN/CrewForge/actions/runs/42057405246)
 - [Performance report](performance.md)
 - [Race integration test](../tests/integration/race.test.ts)
 - [Membership transaction implementation](../src/lib/team-requests.ts)

@@ -1,83 +1,125 @@
-# CrewForge — Hack4Hack PS1 submission pack
+# CrewForge — project and submission guide
 
-**Challenge:** Hack4Hack Crew Hiring Challenge 2026  
-**Problem statement:** PS1 — Race-proof team formation at scale  
-**Submission deadline:** 15 November 2026, 11:59 PM IST  
-**Repository:** https://github.com/PSP-YN/Race-proof-team-formation
-**Public demo:** https://crewforge-demo-pspyn.vercel.app/ (static browser-only demo; no backend/API)
+## Project details
 
-## Reviewer entry points
+- **Project name:** CrewForge
+- **Theme:** Fair, reliable team formation through complementary skills
+- **Challenge focus:** PS1 — Race-proof team formation at scale
+- **One-line pitch:** CrewForge helps people find teammates with complementary skills and prevents duplicate memberships or teams exceeding their capacity—even when many people try to join at once.
+- **Website:** https://crewforge-demo-pspyn.vercel.app/
+- **Repository:** https://github.com/PSP-YN/CrewForge
+- **License:** MIT
 
-1. **Start here:** [README](README.md) — product scope, setup, architecture summary and validation commands.
-2. **One-page design brief:** [docs/one-page-design.md](docs/one-page-design.md) — data model, race prevention, trade-offs and next-week plan.
-3. **Architecture:** [docs/architecture.md](docs/architecture.md) — transaction boundaries, indexes, API surface and security controls.
-4. **Measured performance:** [docs/performance.md](docs/performance.md) — dataset, workload, p95 and benchmark limitations.
-5. **Test evidence and gaps:** [docs/test-strategy.md](docs/test-strategy.md) — automated checks separated from manual release checks.
-6. **Security:** [docs/threat-model.md](docs/threat-model.md) — assets, trust boundaries, controls and residual risks.
-7. **Recorded 2:04 full-stack staging walkthrough:** [watch MP4](demo/files/CrewForge-FullStack-Staging-Walkthrough.mp4) · [English captions](demo/files/CrewForge-FullStack-Staging-Walkthrough.vtt) · [capture script and review boundary](docs/walkthrough-video-script.md).
-8. **Challenge/interview guide:** [docs/challenge-submission.md](docs/challenge-submission.md).
+## Project description (under 280 words)
 
-## Evidence currently recorded
+CrewForge is a team formation platform that helps people find the right teammates based on skills, interests and what a team actually needs.
 
-| Requirement | Evidence | Status |
+Finding a team often depends on existing friendships or random selection. That can leave teams with the same skills, important gaps and people who struggle to find a place where they can contribute. CrewForge makes team needs visible so participants can discover teams that complement their strengths. Team leaders can create teams, describe required skills, manage capacity, invite contributors and review join requests.
+
+The key challenge is keeping team membership fair and correct when many people act at the same time. A simple website check is not enough: two requests can both see the final seat as available, or one person can try to join multiple teams. CrewForge protects these rules in the database. MongoDB unique indexes prevent duplicate membership, while transactions make seat allocation, membership changes and audit records succeed or fail together.
+
+The full application includes authentication, skill-based recommendations, team management, invitations, rate limiting, audit events and real-time board updates. It is built with Next.js, React, TypeScript and MongoDB. Docker Compose makes the full-stack application reproducible locally, and automated tests verify concurrency and transaction rollback.
+
+CrewForge aims to make team formation clearer, more inclusive and more dependable—so people can contribute based on what they bring, not only whom they already know.
+
+## What problem are we solving?
+
+When a team has one place left and several people click Join at nearly the same moment, a weak system can accept both requests. The team becomes larger than its limit. A participant can also end up in two teams if separate requests are processed at the same time.
+
+This is called a **race condition**: the result depends on which request reaches the database first. Checking capacity only in the browser does not solve it because different requests can pass the same check before either one updates the data.
+
+## How CrewForge solves it
+
+1. A participant asks to join a team; the request waits for the team leader's decision.
+2. When the leader approves, the server starts one database transaction.
+3. The transaction checks that a seat is still available, adds the membership, updates the team count and records the action.
+4. All changes commit together. If any rule fails, the transaction rolls back.
+5. Database unique indexes provide a second line of protection against duplicate membership.
+
+**In simple terms:** the database—not the button on the page—has the final say on who gets a seat.
+
+## Why these technical choices?
+
+| Choice | Why it is used | Why not the simpler alternative? |
 |---|---|---|
-| 10,000 seeded participants / 2,000 teams / 6,000 memberships / 4,000 open seats | Updated CI seed verification and isolated local seed validation | Local and CI seed validation passed on the corrected fixture |
-| 50 concurrent leader approvals for one final seat | `tests/integration/race.test.ts` | Automated integration test |
-| One membership per participant per hackathon | Unique compound index + transaction | Implemented |
-| Idempotent retries | Request-bound idempotency records | Implemented |
-| Real-time board updates | MongoDB change streams + bounded SSE | Implemented; local/CI smoke evidence |
-| Authentication and secure invite lifecycle | Auth routes, hashed expiring tokens, leader checks | Implemented; staging verification outstanding |
-| Pending join requests with leader accept/decline | joinRequests collection, leader-only decision route, transactional membership insert and audit event | Implemented + replica-set integration tests |
-| Leader-driven member removal | Leader-only DELETE member route, atomic membership/count update, request cancellation and audit | Implemented + replica-set integration tests |
-| Audit log | Audit collection and transactional writes | Implemented |
-| Explainable skill recommendations | Matching helper and UI | Implemented |
-| CI and security scanning | [CI run 42057405278](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/42057405278) and [CodeQL run 42057405246](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/42057405246) | Both passed on commit `274feac` with the corrected fixture and transaction-kill rollback test |
-| 100 concurrent users / board p95 under 200 ms | [Performance report](docs/performance.md) | Latest CI benchmark: 100 VUs, 98.43 req/s, 10.23 ms p95, 0% HTTP failures and 6,000/6,000 board checks on the corrected 6k-membership/4k-open-seat fixture |
-| At least 20 API tests | [Test strategy](docs/test-strategy.md), `tests/api/route-contracts.test.ts` | **49 route-handler API contract tests**; database/provider end-to-end checks remain separate |
-| Responsive, keyboard-accessible UI | Full React app at 390px viewport (no horizontal overflow); auth dialog ARIA role/label, initial focus, Tab wrap, Escape close and focus restoration | Mobile viewport and modal keyboard checks passed; broader end-to-end keyboard audit remains outstanding |
-| Live URL | Challenge requirement | **Provided:** [CrewForge static demo](https://crewforge-demo-pspyn.vercel.app/). This is a public browser-only simulation; the full-stack service is not deployed. |
-| One-page design doc | [One-page design brief](docs/one-page-design.md) | Prepared |
-| Walkthrough video (up to 5 minutes) | [Recorded full-stack staging MP4](demo/files/CrewForge-FullStack-Staging-Walkthrough.mp4), [English captions](demo/files/CrewForge-FullStack-Staging-Walkthrough.vtt) | **Recorded (2:04), narrated and captioned**; embedded on the live static demo and HTTP-verified |
-| Bonus: optimistic conflict rollback | No backend on public demo; server-conflict rollback not implemented | **Not implemented** |
-| Bonus: Docker Compose, metrics, chaos test | `compose.yaml`, `/api/metrics`, `tests/chaos/kill-mid-join.mjs` | **Implemented and locally verified**; distributed tracing is not implemented |
+| MongoDB transactions | Keep membership, seat count and audit records in one all-or-nothing operation | Separate writes can leave the team count and membership list inconsistent after a failure |
+| Unique database indexes | Stop duplicate membership even when requests arrive together | Frontend checks can be bypassed and can become stale |
+| Idempotency keys | Make a repeated request safe when a client retries after a timeout | Without them, a retry can create duplicate work or confusing results |
+| Server-Sent Events | Push board updates from the server to browsers | WebSockets are unnecessary for a board that mainly sends one-way updates |
+| Explainable skill matching | Show how a person's skills fit the skills a team needs | A black-box score would be harder for participants to understand and challenge |
 
-## Local verification on the submission-readiness branch
+## What is implemented?
 
-- TypeScript typecheck: passed.
-- Vitest: **71/71 passed across 3 files**, including 11 MongoDB replica-set integration tests and the 50-contender final-seat approval race.
-- Transaction fault injection: passed; a worker was killed after writes were staged and before commit, and all transaction writes rolled back.
-- Production build: passed.
-- `npm audit --audit-level=moderate`: 0 vulnerabilities.
-- Isolated seed validation: 10,000 synthetic users, 2,000 teams, 6,000 memberships, 4,000 unassigned participants, 4,000 open seats and 2 judge-only accounts; the validation database was dropped afterwards.
-- Docker Compose smoke test: all five checks passed through the loopback-only trusted proxy — health/database, security headers, cross-origin rejection, board JSON and SSE connected event.
+- Account registration, login and secure session cookies
+- Team discovery, search, creation and editing
+- Skill-based team recommendations
+- Join requests with leader approval or decline
+- Invitations with expiry, revocation and single-use acceptance
+- Leader-controlled member removal and leadership transfer
+- Database-enforced team capacity and one-team-per-participant rules
+- Audit events, rate limits and security telemetry
+- Real-time board updates using MongoDB Change Streams and Server-Sent Events
+- Docker Compose environment, synthetic dataset seeding and automated verification
 
-The latest CI and CodeQL runs are [42057405278](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/42057405278) and [42057405246](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/42057405246); both passed on commit `274feac`. CI verified the corrected 10k/2k/6k/4k/4k dataset, 71/71 tests, transaction-kill rollback, production build, dependency audit, five smoke checks and the 100-VU load test.
+## Evidence reviewers can inspect
 
-## Recorded benchmark
+- **CI:** https://github.com/PSP-YN/CrewForge/actions/runs/43627799288 — passed
+- **CodeQL:** https://github.com/PSP-YN/CrewForge/actions/runs/43627799190 — passed
+- **Automated tests:** 71/71 passed, including 11 MongoDB replica-set integration tests
+- **Concurrency test:** 50 approval requests compete for one final seat; exactly one succeeds
+- **Fault injection:** a worker is stopped before transaction commit; the database changes roll back
+- **Synthetic data:** 10,000 users, 2,000 teams, 6,000 memberships, 4,000 unassigned participants and 4,000 open seats
+- **Load test:** 100 virtual users for 30 seconds; 3,000 requests, 98.02 requests/second, 19.87 ms p95, 0% HTTP failures and 6,000/6,000 board checks passed
 
-The latest CI benchmark is a GitHub-hosted 100-VU/30-second board-read test against a disposable MongoDB 7 replica set using the corrected fixture. It recorded 3,000 requests, 98.43 requests/second, 10.23 ms p95, 0% HTTP failures and 6,000/6,000 board checks. These are synthetic CI measurements, never a production capacity guarantee.
+These are automated tests on a GitHub-hosted runner with a disposable MongoDB replica set. They are not a claim of production-region performance or guaranteed production capacity.
 
-See [docs/performance.md](docs/performance.md) for the tested commit and caveats.
+## How to review the project
 
-## Local reviewer setup
+1. Open the [CrewForge website](https://crewforge-demo-pspyn.vercel.app/) to understand the product and try the sample team board.
+2. Read [README.md](README.md) for the quick start and technology overview.
+3. Read [architecture.md](docs/architecture.md) for the transaction and database rules.
+4. Read [test-strategy.md](docs/test-strategy.md) for the concurrency, API and rollback tests.
+5. Read [performance.md](docs/performance.md) for the exact load-test conditions and limits.
 
-Use the reproducible [Docker Compose runbook](docs/docker-compose.md): copy `.env.example` to `.env`, set a unique `JWT_SECRET` and separate 16+ character `SEED_DEMO_PASSWORD` / `JUDGE_DEMO_PASSWORD` values, then run `docker compose up --build -d`. Seed only a fresh disposable volume with `docker compose --profile seed run --rm seed`. Open **http://localhost:3002** through the loopback-only trusted proxy. Port 3001 is for diagnostics. The full local test, chaos and smoke commands are in the runbook.
+## Demo scope — be transparent
 
-For the hackathon demo, `AUTH_EMAIL_VERIFICATION_REQUIRED=false` permits registration and login without a transactional email provider; the app does not claim these email addresses are verified. Email-based password recovery is explicitly unavailable in this mode. Enable verification only with a verified sender and `AUTH_EMAIL_VERIFICATION_REQUIRED=true`. Never use the demo seed against a production database.
+The public website is a product landing page with an interactive sample workspace. Changes in that preview are saved only in the visitor's browser; it is not a shared account-based service. The full-stack application is in this repository and runs locally using Docker Compose and MongoDB replica-set support.
 
-## Before submitting
+A public multi-user backend deployment is not yet complete. It requires a production MongoDB replica-set URI, a non-empty production JWT secret, hosting configuration, deployment-specific smoke tests and backup/restore validation. Email verification and recovery also require a verified transactional email sender. Do not describe the preview as a live production database service.
 
-- [ ] Re-check the latest `main` CI and CodeQL runs immediately before submission; include the exact CI run link.
-- [x] Verify 390px mobile viewport has no horizontal overflow and the authentication dialog supports ARIA semantics, initial focus, Tab wrapping, Escape close and focus restoration; broader keyboard-only audit remains outstanding.
-- [x] Record the 2:04 full-stack staging walkthrough with narration and English captions; verify the public embed and asset links.
-- [ ] Re-check all repository links, setup steps and public visibility from a signed-out browser.
-- [ ] Complete the organizer's submission form before the deadline.
-- [ ] Configure a production MongoDB replica-set URI and non-empty session secret, deploy the full-stack app, then complete the staging verification matrix. Resend is optional for the hackathon demo only while email verification remains disabled. Confirm the public static demo URL opens in a signed-out/incognito browser and disclose its simulation boundary.
+## Technology stack
 
-## Demo deployment boundary
+- **Frontend:** Next.js 16, React 19, TypeScript
+- **API and validation:** Next.js App Router, Zod 4
+- **Database:** MongoDB 7 replica set
+- **Authentication:** bcrypt password hashing, signed JWT sessions, HttpOnly cookies
+- **Realtime:** MongoDB Change Streams, Server-Sent Events
+- **Infrastructure:** Docker Compose
+- **Testing and security:** Vitest, GitHub Actions, CodeQL, k6, npm audit
 
-The static demo is manually deployed to Vercel from `demo/` as project `crewforge-demo`. Latest production deployment: `dpl_HGCSJ8jJB4dy5taNS9SrvGrZp6XW`, CLI deployment from the reviewed local `demo/` assets, state **Ready**, public alias [crewforge-demo-pspyn.vercel.app](https://crewforge-demo-pspyn.vercel.app/). It does not use API routes, backend services, secrets, or database access. Automatic Vercel Git deployments remain disabled in `vercel.json`; Preview deployments are disabled for the demo project. The current full-stack Next.js project remains **not deployed** because production MongoDB and Resend credentials are not configured in Vercel; its production gates in [docs/production-readiness.md](docs/production-readiness.md) are not satisfied. Do not describe the static demo as a live authentication, invite, email, database, or concurrency service.
+## Run the full-stack app locally
 
-## Submission integrity
+```bash
+git clone https://github.com/PSP-YN/CrewForge.git
+cd CrewForge
+cp .env.example .env
+```
 
-AI coding tools are allowed by the challenge, but candidates must be able to explain every line and make a small live change during the interview. Only present technical details you personally understand. The repository distinguishes implemented code, automated evidence, manual checks and external deployment gates; preserve that distinction in the submission and interview.
+Set a unique `JWT_SECRET` with at least 32 random characters. For demo seeding, set separate `SEED_DEMO_PASSWORD` and `JUDGE_DEMO_PASSWORD` values. Then run:
+
+```bash
+docker compose up --build -d
+```
+
+Open http://localhost:3002. See [docs/docker-compose.md](docs/docker-compose.md) for seeding and verification steps. Never commit `.env` or use seeded demo data in production.
+
+## What remains before a public production launch?
+
+- Configure a hosted MongoDB replica set and production credentials.
+- Deploy the full-stack Next.js app and verify the exact deployed commit.
+- Run production smoke, authorization, security and load tests.
+- Verify database backups and a restore procedure.
+- Configure and test a verified email sender if email verification/recovery is enabled.
+- Add production monitoring, alerting and a rollback plan.
+
+The public preview and local full-stack environment are useful demonstrations, but they are not substitutes for those release checks.

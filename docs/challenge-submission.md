@@ -64,8 +64,8 @@ Do not claim that the system is production-deployed, WAF-protected or production
 The repository includes a MIT license, contribution rules, Code of Conduct, vulnerability reporting policy, pull-request template, issue templates, Dependabot configuration, and CodeQL workflow. The test matrix and demo runbook are maintained separately so a reviewer can inspect the technical claims and reproduce the demonstration.
 
 For the submission, link directly to:
-- Repository: https://github.com/PSP-YN/Race-proof-team-formation
-- CI evidence: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41517226227
+- Repository: https://github.com/PSP-YN/CrewForge
+- CI evidence: https://github.com/PSP-YN/CrewForge/actions/runs/41517226227
 - Performance report: [docs/performance.md](performance.md)
 - Architecture: [docs/architecture.md](architecture.md)
 - Test matrix: [docs/test-strategy.md](test-strategy.md)

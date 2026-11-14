@@ -9,7 +9,7 @@ Security fixes are applied to the current default branch. There are no separatel
 Do not disclose exploitable vulnerabilities in public issues or pull requests.
 
 Use GitHub's private vulnerability reporting flow when it is enabled for this repository:
-https://github.com/PSP-YN/Race-proof-team-formation/security/advisories/new
+https://github.com/PSP-YN/CrewForge/security/advisories/new
 
 If private reporting is unavailable, contact the repository maintainer through GitHub and request a private channel. Include reproduction steps, affected commit or route, impact, and any safe proof of concept. Do not include real user data or live secrets.
 

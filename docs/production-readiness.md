@@ -54,7 +54,7 @@ Never run the demo seed against a production database. The seed script requires 
 
 ## Vercel setup
 
-1. Import `PSP-YN/Race-proof-team-formation` into Vercel.
+1. Import `PSP-YN/CrewForge` into Vercel.
 2. Set the production branch to `main`.
 3. Add the required environment variables to Production and Preview scopes as appropriate. Use separate Atlas databases and Resend sender settings for staging and production.
 4. Set the canonical custom domain and configure DNS.

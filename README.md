@@ -2,11 +2,28 @@
 
 **Find your people. Build something real.**
 
+[![CI](https://github.com/PSP-YN/CrewForge/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PSP-YN/CrewForge/actions/workflows/ci.yml) [![CodeQL](https://github.com/PSP-YN/CrewForge/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/PSP-YN/CrewForge/actions/workflows/codeql.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 CrewForge helps people form balanced teams by making skills, interests, team needs, and available seats visible. Participants can discover teams, compare their skills with what a team needs, and join a suitable crew. Team leaders can create teams, manage capacity, review requests, and invite contributors.
 
 > **Try the product:** [Open the CrewForge demo](https://crewforge-demo-pspyn.vercel.app/)
 >
 > The public link is a browser-only interactive preview. Its sample teams and changes are stored in your browser; it does not connect to the MongoDB backend. The full-stack application is available in this repository and can be run locally using the instructions below.
+
+## The problem in plain words
+
+A team has one place left. Two people click Join at almost the same time. If the app checks capacity only in the browser, both requests can see that last place and both may be accepted. One participant might also be added to two teams through overlapping requests. This is a race condition.
+
+CrewForge solves this at the database layer. A unique index blocks duplicate membership, and a MongoDB transaction makes the seat check, membership change and audit record one all-or-nothing operation. If the seat is already taken or any write fails, the transaction does not partially apply.
+
+**The core promise:** no duplicate membership and no team exceeding its configured capacity because two requests arrived together.
+
+## Start here
+
+1. Open the [CrewForge website](https://crewforge-demo-pspyn.vercel.app/) to understand the product and try the sample workspace.
+2. Read [Architecture](docs/architecture.md) to see how the database protects team membership.
+3. Read [Test strategy](docs/test-strategy.md) to inspect the 50-request final-seat race test and transaction rollback test.
+4. Use [SUBMISSION.md](SUBMISSION.md) for the plain-language project explanation, demo scope and evidence links.
 
 ## What it does
 
@@ -30,7 +47,7 @@ MongoDB replica set ---- Transactions, unique indexes, audit events
           +------------- Change streams / Server-Sent Events
 ```
 
-The central engineering problem is concurrent team formation. MongoDB unique indexes prevent duplicate membership, while transactions make approval, seat allocation, membership changes, and audit records atomic. This protects the final seat when multiple participants try to join at the same time.
+The central engineering problem is concurrent team formation. MongoDB unique indexes prevent duplicate membership, while transactions make approval, seat allocation, membership changes and audit records atomic. The integration suite sends 50 leader approvals for one remaining seat and verifies that exactly one approval succeeds.
 
 Read [Architecture](docs/architecture.md) for the data model and transaction flow, and [Engineering decisions](docs/engineering-decisions.md) for implementation trade-offs.
 
@@ -56,8 +73,8 @@ Read [Architecture](docs/architecture.md) for the data model and transaction flo
 ### Start the full-stack application
 
 ```bash
-git clone https://github.com/PSP-YN/Race-proof-team-formation.git
-cd Race-proof-team-formation
+git clone https://github.com/PSP-YN/CrewForge.git
+cd CrewForge
 cp .env.example .env
 ```
 
